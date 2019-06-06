@@ -10,7 +10,8 @@ class ReplyField(scrapy.Item):
     Content = scrapy.Field(default='NULL')
     Like = scrapy.Field(default=0)
     DisLike = scrapy.Field(default=0)
-
+    Name = scrapy.Field(default = 'NULL')
+    LinkName = scrapy.Field(default = 'NULL')
 
 class CommentField(scrapy.Item):
     Content = scrapy.Field(default='NULL')
@@ -18,8 +19,8 @@ class CommentField(scrapy.Item):
     Like = scrapy.Field(default=0)
     DisLike = scrapy.Field(default=0)
     CountReplies = scrapy.Field(default=0)
-
-
+    Name = scrapy.Field(default = 'NULL')
+    LinkName = scrapy.Field(default = 'NULL')
 
 class InforItem(scrapy.Item):
     Title = scrapy.Field(default='NULL')
@@ -29,4 +30,5 @@ class InforItem(scrapy.Item):
     CountComment = scrapy.Field(default=0)
     ChanelName = scrapy.Field(default='NULL')
     ChanelSub = scrapy.Field(default=0)
+    ChanelLink = scrapy.Field(default= 'NULL')
     Comment = scrapy.Field(default='NULL')
