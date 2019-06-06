@@ -1,16 +1,18 @@
+requie: installed python 3.7.3, docker, scrapy, splash
+
 config input in infor.json :
-    ChanelUrl : url of chanel for crawl data 
-    VideoUrl : url of video for crawl data. if ChanelUrl is setted VideoUrl not pass.
-    MaxVideo : if ChanelUrl is not NULL. this is maximum video will crawl data from chanel.
-    MaxCommentVideo : if ChanelUrl is NULL. MaxCommentVideo is maximum of comment need crawl of video from VideoUrl
-    MaxCommentChanel : if ChanelUrl is not NULL. MaxCommentChanel is maximum number of comment will crawl from a video of chanel 
-    RepliesVideo : if ChanelUrl is NULL. this is maximum number of replies need crawl from a comment of video from VideoUrl. default value is 0. it mean that no replies crawled.
-    RepliesChanel : if ChanelUrl is not NULL. this is maximum number of replies need crawl per comment of a video from chanel.
-    "LikeCommentVideo": value = 1 if like of comment of video need crawl else value = 0
-    "DisLikeCommentVideo": 1,
-    "LikeCommentChanel" : 1,
-    "DisLikeCommentChanel" : 1,
-    "LikeRepliesVideo" : 1,
-    "DisLikeRpliesVideo": 1,
-    "LikeRepliesChanel": 1,
-    "DisLikeRepliesChanel": 1,
+    "ChanelUrl" : url of chanel for crawl data 
+    "VideoUrl" : url of video for crawl data. if ChanelUrl is setted VideoUrl not pass.
+    "MaxVideo" : if ChanelUrl is not NULL. this is maximum video will crawl data from chanel.
+    "MaxComment": if value = -1 get all comment. else get 'value' comment per video 
+    "Replies": if value = -1 get reply else dont get reply
+    "LikeComment": value = -1 if like of comment of video need crawl else dont get like comment 
+    "DisLikeComment": if value = -1 get DisLikeComment else dont get
+    "LikeReplies" : if value = -1 get LikeReplies else dont get
+    "DisLikeRplies": if value = -1 get DisLikeRplies else dont get
+
+
+if ChanelUrl is NULL then crawl from VideoUrl.
+
+run docker and after run command: "docker run -p 8050:8050 scrapinghub/splash --max-timeout 3600 --disable-lua-sandbox"
+config port , browser in setings.py ( browser in my project is Firefox/66.0)
