@@ -1,7 +1,7 @@
-##  requie: 
+## requie: 
 installed python 3.7.3, docker, scrapy, splash
 
-##  config input in infor.json :
+## config input in infor.json :
     "ChanelUrl" : url of chanel for crawl data 
     "VideoUrl" : url of video for crawl data. if ChanelUrl is setted VideoUrl not pass.
     "MaxVideo" : if ChanelUrl is not NULL. this is maximum video will crawl data from chanel.
@@ -13,7 +13,7 @@ installed python 3.7.3, docker, scrapy, splash
     "DisLikeRplies": if value = -1 get DisLikeRplies else dont get
 
 
-###  if ChanelUrl is NULL then crawl from VideoUrl.
+### if ChanelUrl is NULL then crawl from VideoUrl.
 
-###  run docker and after run command: "docker run -p 8050:8050 scrapinghub/splash --max-timeout 3600 --disable-lua-sandbox"
-###  config port , browser in setings.py ( browser in my project is Firefox/66.0)
+### run docker and after run command: "docker run -p 8050:8050 scrapinghub/splash --max-timeout 3600 --disable-lua-sandbox"
+### config port , browser in setings.py ( browser in my project is Firefox/66.0)
