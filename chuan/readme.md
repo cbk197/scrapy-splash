@@ -12,8 +12,9 @@ installed python 3.7.3, docker, scrapy, splash
     "LikeReplies" : if value = -1 get LikeReplies else dont get
     "DisLikeRplies": if value = -1 get DisLikeRplies else dont get
 
+## note
+if ChanelUrl is NULL then crawl from VideoUrl.
 
-### if ChanelUrl is NULL then crawl from VideoUrl.
-
-### run docker and after run command: "docker run -p 8050:8050 scrapinghub/splash --max-timeout 3600 --disable-lua-sandbox"
-### config port , browser in setings.py ( browser in my project is Firefox/66.0)
+## run splash with docker
+run docker and after run command: "docker run -p 8050:8050 scrapinghub/splash --max-timeout 3600 --disable-lua-sandbox"
+config port , browser in setings.py ( browser in my project is Firefox/66.0)
