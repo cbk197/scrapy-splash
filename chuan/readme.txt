@@ -6,7 +6,7 @@ config input in infor.json :
     "MaxVideo" : if ChanelUrl is not NULL. this is maximum video will crawl data from chanel.
     "MaxComment": if value = -1 get all comment. else get 'value' comment per video 
     "Replies": if value = -1 get reply else dont get reply
-    "LikeComment": value = -1 if like of comment of video need crawl else dont get like comment 
+    "LikeComment": value = -1 get Like comment else dont get like comment 
     "DisLikeComment": if value = -1 get DisLikeComment else dont get
     "LikeReplies" : if value = -1 get LikeReplies else dont get
     "DisLikeRplies": if value = -1 get DisLikeRplies else dont get

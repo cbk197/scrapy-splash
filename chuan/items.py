@@ -32,3 +32,4 @@ class InforItem(scrapy.Item):
     ChanelSub = scrapy.Field(default=0)
     ChanelLink = scrapy.Field(default= 'NULL')
     Comment = scrapy.Field(default='NULL')
+    Url = scrapy.Field(default='NULL')

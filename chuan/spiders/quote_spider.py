@@ -19,19 +19,9 @@ from scrapy.spiders import CrawlSpider
 from chuan.items import InforItem, CommentField, ReplyField
 from bs4 import BeautifulSoup
 import os
+import os.path
 import random
-script = """ 
-function main(splash)
-    splash:init_cookies(splash.args.cookies)
-    local url = splash.args.url
-    assert(splash:go(url))
-    assert(splash:wait(5))
-    return {
-        cookies = splash:get_cookies(),
-        html = splash:html()
-    }
-end
-"""
+
 
 scriptNumComment = """
 function main(splash,args)
@@ -44,7 +34,7 @@ function main(splash,args)
     local get_body_height = splash:jsfunc(
         "function() {return document.body.scrollHeight;}"
     )
-    splash:clear_cookies()
+    
     assert(splash:go(splash.args.url))
     assert(splash:wait(20))
     splash:set_viewport_full()
@@ -95,6 +85,7 @@ function main(splash)
     local get_body_height = splash:jsfunc(
         "function() {return document.body.scrollHeight;}"
     )
+
     assert(splash:go(splash.args.url))
     assert(splash:wait(20))
     splash:set_viewport_full()
@@ -226,28 +217,13 @@ function main(splash,args)
 end
 """
 
-homescript = """
-function main(splash,args)
-    
-  	splash.private_mode_enabled = false
-    
-    splash.images_enabled = false
-    
-    assert(splash:go(splash.args.url))
-    assert(splash:wait(20))
-    splash:set_viewport_full()
-    
-    return {
-        html = splash:html()
-    }
-end
-"""
+
 dataJson = None
 ChanelDirctory = None
 PathDir= None
 class CrawlVideo(scrapy.Spider):
     
-    name = 'youtube1'
+    name = 'youtube'
     
     allowed_domains = ['youtube.com','google.com','accounts.google.com']
     start_urls = []
@@ -258,24 +234,43 @@ class CrawlVideo(scrapy.Spider):
         f = open("chuan\infor.json",'r')
         data = f.read()
         global dataJson
+        global PathDir
         dataJson = json.loads(data)
-        if dataJson['ChanelUrl'] == 'NULL' :
+        if dataJson['ChanelUrl'] == None :
             self.start_urls.append(dataJson['VideoUrl'])
-            num = int(dataJson['MaxCommentVideo']/20 + 1) 
-            print("\n\n\nnums = %s\n\n"%num)
+            PathDir = "chuan\data\\video"
+            if  not os.path.exists(PathDir) :
+                os.mkdir(PathDir)
             for url in self.start_urls:
-                yield SplashRequest(url, endpoint='execute',
-                                    args={'wait': 20,'lua_source': scriptFullComment, 'timeout':3600, 'nums': num}, callback = self.parse )
+                if dataJson['MaxComment'] == -1:
+                    if dataJson['Replies'] ==-1:
+                        yield SplashRequest(url, endpoint='execute',
+                                            args={'wait': 20,'lua_source': scriptFullComment, 'timeout':3600}, callback = self.parse )
+                    else :
+                        yield SplashRequest(url, endpoint='execute',
+                                            args={'wait': 20,'lua_source': scriptCommentFullNoReply, 'timeout':3600}, callback = self.parse )
+                
+                else:
+                    num = int(dataJson['MaxComment']/20 + 1) 
+                    if dataJson['Replies'] == -1 :
+
+                        yield SplashRequest(url, endpoint='execute',
+                                            args={'wait': 20,'lua_source': scriptNumComment, 'timeout':3600,'nums': num}, callback = self.parse )
+                    else:
+                        yield SplashRequest(url, endpoint='execute',
+                                            args={'wait': 20,'lua_source': scriptNumCommentNoReply, 'timeout':3600,'nums': num}, callback = self.parse )
+
         else : 
             chanelUrl = dataJson['ChanelUrl']
             index = chanelUrl.find('www.youtube.com')
             outUrl = chanelUrl[:index]+'m'+ chanelUrl[index+3:]
             self.start_urls.append(dataJson['ChanelUrl']+'/videos')
             num = int(dataJson['MaxVideo']/30 + 1)
-            print("\n\n\nnums = %s\n\n"%num)
+            
             for url in self.start_urls:
                 yield SplashRequest(url, endpoint='execute',
                                     args={'wait': 20,'lua_source': chanelScriptGetAll, 'timeout':3600, 'nums': num}, callback = self.parseChanel )
+
 
 
     def parse(self, response):
@@ -286,7 +281,7 @@ class CrawlVideo(scrapy.Spider):
 
         
         item = InforItem()
-        
+        global dataJson
         # comment= response.selector.xpath('//*[@id="content-text"]')
         # replie = response.selector.css('html body ytd-app div#content.style-scope.ytd-app ytd-page-manager#page-manager.style-scope.ytd-app ytd-watch-flexy.style-scope.ytd-page-manager.hide-skeleton div#columns.style-scope.ytd-watch-flexy div#primary.style-scope.ytd-watch-flexy div#primary-inner.style-scope.ytd-watch-flexy ytd-comments#comments.style-scope.ytd-watch-flexy ytd-item-section-renderer#sections.style-scope.ytd-comments div#contents.style-scope.ytd-item-section-renderer ytd-comment-thread-renderer.style-scope.ytd-item-section-renderer div#replies.style-scope.ytd-comment-thread-renderer ytd-comment-replies-renderer.style-scope.ytd-comment-thread-renderer ytd-expander#expander.style-scope.ytd-comment-replies-renderer div#content.style-scope.ytd-expander div#expander-contents.style-scope.ytd-comment-replies-renderer div#loaded-replies.style-scope.ytd-comment-replies-renderer ytd-comment-renderer.style-scope.ytd-comment-replies-renderer div#body.style-scope.ytd-comment-renderer div#main.style-scope.ytd-comment-renderer ytd-expander#expander.style-scope.ytd-comment-renderer div#content.style-scope.ytd-expander yt-formatted-string#content-text.style-scope.ytd-comment-renderer')
         comment = response.selector.css('html body ytd-app div#content.style-scope.ytd-app ytd-page-manager#page-manager.style-scope.ytd-app ytd-watch-flexy.style-scope.ytd-page-manager.hide-skeleton div#columns.style-scope.ytd-watch-flexy div#primary.style-scope.ytd-watch-flexy div#primary-inner.style-scope.ytd-watch-flexy ytd-comments#comments.style-scope.ytd-watch-flexy ytd-item-section-renderer#sections.style-scope.ytd-comments div#contents.style-scope.ytd-item-section-renderer ytd-comment-thread-renderer.style-scope.ytd-item-section-renderer')
@@ -298,44 +293,54 @@ class CrawlVideo(scrapy.Spider):
         item['ChanelName'] = response.css('html body ytd-app div#content.style-scope.ytd-app ytd-page-manager#page-manager.style-scope.ytd-app ytd-watch-flexy.style-scope.ytd-page-manager.hide-skeleton div#columns.style-scope.ytd-watch-flexy div#primary.style-scope.ytd-watch-flexy div#primary-inner.style-scope.ytd-watch-flexy div#meta.style-scope.ytd-watch-flexy div#meta-contents.style-scope.ytd-watch-flexy ytd-video-secondary-info-renderer.style-scope.ytd-watch-flexy div#container.style-scope.ytd-video-secondary-info-renderer div#top-row.style-scope.ytd-video-secondary-info-renderer ytd-video-owner-renderer.style-scope.ytd-video-secondary-info-renderer div#upload-info.style-scope.ytd-video-owner-renderer div#owner-container.style-scope.ytd-video-owner-renderer yt-formatted-string#owner-name.style-scope.ytd-video-owner-renderer a.yt-simple-endpoint.style-scope.yt-formatted-string').select("text()").extract_first().strip()
         item['ChanelLink'] = response.css('html body ytd-app div#content.style-scope.ytd-app ytd-page-manager#page-manager.style-scope.ytd-app ytd-watch-flexy.style-scope.ytd-page-manager.hide-skeleton div#columns.style-scope.ytd-watch-flexy div#primary.style-scope.ytd-watch-flexy div#primary-inner.style-scope.ytd-watch-flexy div#meta.style-scope.ytd-watch-flexy div#meta-contents.style-scope.ytd-watch-flexy ytd-video-secondary-info-renderer.style-scope.ytd-watch-flexy div#container.style-scope.ytd-video-secondary-info-renderer div#top-row.style-scope.ytd-video-secondary-info-renderer ytd-video-owner-renderer.style-scope.ytd-video-secondary-info-renderer div#upload-info.style-scope.ytd-video-owner-renderer div#owner-container.style-scope.ytd-video-owner-renderer yt-formatted-string#owner-name.style-scope.ytd-video-owner-renderer a.yt-simple-endpoint.style-scope.yt-formatted-string').xpath("@href").extract_first().strip()
         item['ChanelSub'] = response.css('html body ytd-app div#content.style-scope.ytd-app ytd-page-manager#page-manager.style-scope.ytd-app ytd-watch-flexy.style-scope.ytd-page-manager.hide-skeleton div#columns.style-scope.ytd-watch-flexy div#primary.style-scope.ytd-watch-flexy div#primary-inner.style-scope.ytd-watch-flexy div#meta.style-scope.ytd-watch-flexy div#meta-contents.style-scope.ytd-watch-flexy ytd-video-secondary-info-renderer.style-scope.ytd-watch-flexy div#container.style-scope.ytd-video-secondary-info-renderer div#top-row.style-scope.ytd-video-secondary-info-renderer div#subscribe-button.style-scope.ytd-video-secondary-info-renderer ytd-subscribe-button-renderer.style-scope.ytd-video-secondary-info-renderer paper-button.style-scope.ytd-subscribe-button-renderer yt-formatted-string.style-scope.ytd-subscribe-button-renderer span.deemphasize.style-scope.yt-formatted-string').select("text()").extract_first()
+        item['Url'] = response.url
         i = 0
         listcomment = []
         if dataJson['MaxComment']  != 0 :
-
-            for xtext in comment: 
-                listreply = []
-                itemcomment = CommentField()                      
-                commentPart= xtext.css('ytd-comment-renderer#comment.style-scope.ytd-comment-thread-renderer div#body.style-scope.ytd-comment-renderer div#main.style-scope.ytd-comment-renderer')
-                commenttex= commentPart.css('ytd-expander#expander.style-scope.ytd-comment-renderer div#content.style-scope.ytd-expander yt-formatted-string#content-text.style-scope.ytd-comment-renderer')
-                likeComment = commentPart.css('ytd-comment-action-buttons-renderer#action-buttons.style-scope.ytd-comment-renderer div#toolbar.style-scope.ytd-comment-action-buttons-renderer span#vote-count-middle.style-scope.ytd-comment-action-buttons-renderer')
-                NameComment = xtext.css('ytd-comment-renderer#comment.style-scope.ytd-comment-thread-renderer div#body.style-scope.ytd-comment-renderer div#main.style-scope.ytd-comment-renderer div#header.style-scope.ytd-comment-renderer div#header-author.style-scope.ytd-comment-renderer a#author-text.yt-simple-endpoint.style-scope.ytd-comment-renderer')
-                                                                                                                                                                                                                                                                                               
-                itemcomment['Name'] = NameComment.css('span.style-scope.ytd-comment-renderer').select("text()").extract_first().strip()
-                itemcomment['LinkName'] = NameComment.xpath("@href").extract_first().strip()
-                itemcomment["Content"] = commenttex.select("text()").extract_first()
-                itemcomment["Like"] = likeComment.select("text()").extract_first().strip()
-                itemcomment["DisLike"] = 0
             
-                j = 0
-                if dataJson['Replies'] == -1 :
-                    
-                    replie = xtext.css('div#replies.style-scope.ytd-comment-thread-renderer ytd-comment-replies-renderer.style-scope.ytd-comment-thread-renderer ytd-expander#expander.style-scope.ytd-comment-replies-renderer div#content.style-scope.ytd-expander div#expander-contents.style-scope.ytd-comment-replies-renderer div#loaded-replies.style-scope.ytd-comment-replies-renderer ytd-comment-renderer.style-scope.ytd-comment-replies-renderer div#body.style-scope.ytd-comment-renderer div#main.style-scope.ytd-comment-renderer')
-                    if replie != None :
-                        for text in replie: 
-                            itemReplies = ReplyField()
-                            replyContent = text.css('ytd-expander#expander.style-scope.ytd-comment-renderer div#content.style-scope.ytd-expander yt-formatted-string#content-text.style-scope.ytd-comment-renderer')
-                            itemReplies["Content"] = replyContent.select("text()").extract_first()
-                            itemReplies['Like'] = text.css('ytd-comment-action-buttons-renderer#action-buttons.style-scope.ytd-comment-renderer div#toolbar.style-scope.ytd-comment-action-buttons-renderer span#vote-count-middle.style-scope.ytd-comment-action-buttons-renderer').select("text()").extract_first()
-                            itemReplies['DisLike'] = 0 
-                            itemReplies['Name'] = text.css('div#header.style-scope.ytd-comment-renderer div#header-author.style-scope.ytd-comment-renderer a#author-text.yt-simple-endpoint.style-scope.ytd-comment-renderer span.style-scope.ytd-comment-renderer').select("text()").extract_first().strip()
-                            itemReplies['LinkName'] = text.css('div#header.style-scope.ytd-comment-renderer div#header-author.style-scope.ytd-comment-renderer a#author-text.yt-simple-endpoint.style-scope.ytd-comment-renderer').xpath("@href").extract_first().strip()
-                            j= j+1
-                            listreply.append(dict(itemReplies))
-                            print("\n\nreplies: ",dict(itemReplies))
-                itemcomment["Replies"] = list(listreply)
-                itemcomment["CountReplies"] = j
-                listcomment.append(dict(itemcomment))
-                i = i+1
+            for xtext in comment: 
+                if i == dataJson['MaxComment'] :
+                    break
+                if xtext != None:
+                    listreply = []
+                    itemcomment = CommentField()                      
+                    commentPart= xtext.css('ytd-comment-renderer#comment.style-scope.ytd-comment-thread-renderer div#body.style-scope.ytd-comment-renderer div#main.style-scope.ytd-comment-renderer')
+                    commenttex= commentPart.css('ytd-expander#expander.style-scope.ytd-comment-renderer div#content.style-scope.ytd-expander yt-formatted-string#content-text.style-scope.ytd-comment-renderer')
+                    likeComment = commentPart.css('ytd-comment-action-buttons-renderer#action-buttons.style-scope.ytd-comment-renderer div#toolbar.style-scope.ytd-comment-action-buttons-renderer span#vote-count-middle.style-scope.ytd-comment-action-buttons-renderer')
+                    NameComment = xtext.css('ytd-comment-renderer#comment.style-scope.ytd-comment-thread-renderer div#body.style-scope.ytd-comment-renderer div#main.style-scope.ytd-comment-renderer div#header.style-scope.ytd-comment-renderer div#header-author.style-scope.ytd-comment-renderer a#author-text.yt-simple-endpoint.style-scope.ytd-comment-renderer')
+
+                    itemcomment['Name'] = NameComment.css('span.style-scope.ytd-comment-renderer').select("text()").extract_first().strip()
+                    itemcomment['LinkName'] = NameComment.xpath("@href").extract_first().strip()
+                    itemcomment["Content"] = commenttex.select("text()").extract_first()
+
+                    if dataJson['LikeComment'] == -1 : 
+                        itemcomment["Like"] = likeComment.select("text()").extract_first().strip()
+
+                    if dataJson['DisLikeComment'] == -1 :
+                        itemcomment["DisLike"] = 0
+
+                    j = 0
+                    if dataJson['Replies'] == -1 :
+
+                        replie = xtext.css('div#replies.style-scope.ytd-comment-thread-renderer ytd-comment-replies-renderer.style-scope.ytd-comment-thread-renderer ytd-expander#expander.style-scope.ytd-comment-replies-renderer div#content.style-scope.ytd-expander div#expander-contents.style-scope.ytd-comment-replies-renderer div#loaded-replies.style-scope.ytd-comment-replies-renderer ytd-comment-renderer.style-scope.ytd-comment-replies-renderer div#body.style-scope.ytd-comment-renderer div#main.style-scope.ytd-comment-renderer')
+                        if replie != None :
+                            for text in replie: 
+                                itemReplies = ReplyField()
+                                replyContent = text.css('ytd-expander#expander.style-scope.ytd-comment-renderer div#content.style-scope.ytd-expander yt-formatted-string#content-text.style-scope.ytd-comment-renderer')
+                                itemReplies["Content"] = replyContent.select("text()").extract_first()
+                                if dataJson['LikeReplies'] == -1 :
+                                    itemReplies['Like'] = text.css('ytd-comment-action-buttons-renderer#action-buttons.style-scope.ytd-comment-renderer div#toolbar.style-scope.ytd-comment-action-buttons-renderer span#vote-count-middle.style-scope.ytd-comment-action-buttons-renderer').select("text()").extract_first().strip()
+                                if dataJson['DisLikeReplies'] == -1 :
+                                    itemReplies['DisLike'] = 0 
+                                itemReplies['Name'] = text.css('div#header.style-scope.ytd-comment-renderer div#header-author.style-scope.ytd-comment-renderer a#author-text.yt-simple-endpoint.style-scope.ytd-comment-renderer span.style-scope.ytd-comment-renderer').select("text()").extract_first().strip()
+                                itemReplies['LinkName'] = text.css('div#header.style-scope.ytd-comment-renderer div#header-author.style-scope.ytd-comment-renderer a#author-text.yt-simple-endpoint.style-scope.ytd-comment-renderer').xpath("@href").extract_first().strip()
+                                j= j+1
+                                listreply.append(dict(itemReplies))
+                                # print("\n\nreplies: ",dict(itemReplies))
+                    itemcomment["Replies"] = list(listreply)
+                    itemcomment["CountReplies"] = j
+                    listcomment.append(dict(itemcomment))
+                    i = i+1
 
         item["CountComment"] = i
         item["Comment"] = list(listcomment)
@@ -353,6 +358,7 @@ class CrawlVideo(scrapy.Spider):
         f = open(filename,'w',encoding='utf-8')
         
         json.dump(dict(item),f,ensure_ascii= False)
+        
         f.close()
             
         
@@ -365,29 +371,33 @@ class CrawlVideo(scrapy.Spider):
     def parseChanel(self,response):
         # soup = BeautifulSoup(response.body,'html.parser')
         # sel = Selector(text=soup.prettify())
-        page = response.url.split("/")[-2]
-        filename = 'new%s.html' % page
-        with open(filename, 'wb') as f:
-            f.write(response.body)
-        self.log('Saved file %s' %filename)
+        
         requestUrl = []
         linkVideo = response.selector.xpath('//div[@id="meta"]')
-        print("\n\n\nlink: ", linkVideo)
+        
         i = 0
         global ChanelDirctory
         
         for link in linkVideo:
-            print("linkkkkk:",link.css('h3.style-scope.ytd-grid-video-renderer a#video-title.yt-simple-endpoint.style-scope.ytd-grid-video-renderer').xpath("@href").extract_first())
+            # print("linkkkkk:",link.css('h3.style-scope.ytd-grid-video-renderer a#video-title.yt-simple-endpoint.style-scope.ytd-grid-video-renderer').xpath("@href").extract_first())
             if link.css('h3.style-scope.ytd-grid-video-renderer a#video-title.yt-simple-endpoint.style-scope.ytd-grid-video-renderer').xpath("@href").extract_first() != None:
                 i = i+1
                 requestUrl.append('https://www.youtube.com'+link.css('h3.style-scope.ytd-grid-video-renderer a#video-title.yt-simple-endpoint.style-scope.ytd-grid-video-renderer').xpath("@href").extract_first())
         
-        print("\n\nvideonumber : ",i)
+        
         numVideo = 0 
         ChanelDirctory = response.css('html body ytd-app div#content.style-scope.ytd-app ytd-page-manager#page-manager.style-scope.ytd-app ytd-browse.style-scope.ytd-page-manager div#header.style-scope.ytd-browse ytd-c4-tabbed-header-renderer.style-scope.ytd-browse app-header-layout.style-scope.ytd-c4-tabbed-header-renderer div#wrapper.style-scope.app-header-layout app-header#header.style-scope.ytd-c4-tabbed-header-renderer div#contentContainer.style-scope.app-header div#channel-container.style-scope.ytd-c4-tabbed-header-renderer div#channel-header.style-scope.ytd-c4-tabbed-header-renderer div#channel-header-container.style-scope.ytd-c4-tabbed-header-renderer div#inner-header-container.style-scope.ytd-c4-tabbed-header-renderer div#meta.style-scope.ytd-c4-tabbed-header-renderer h1#channel-title-container.style-scope.ytd-c4-tabbed-header-renderer span#channel-title.style-scope.ytd-c4-tabbed-header-renderer').select("text()").extract_first()
         global PathDir 
-        PathDir1 = "chuan\data\chanel\\" + ChanelDirctory
-        PathDir=  PathDir1.replace(' ', '_')
+        
+        filename1 =  ChanelDirctory + str(random.randint(0,10000)) 
+        filename2 = filename1.replace(' ', '_')
+        filename3 = filename2.replace('|', '_')
+        filename4 = filename3.replace('*', '_')
+        filename5 = filename4.replace('\\', '_')
+        filename5 = filename5.replace('?', '_')
+        filename5 = filename5.replace(':', '_')
+        filename5 = filename5.replace('\"', '_')
+        PathDir =  "chuan\data\chanel\\"+ filename5.replace('/', '_')
         try :
             os.mkdir(PathDir)
         except FileExistsError:
