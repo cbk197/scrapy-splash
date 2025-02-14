@@ -1,17 +1,33 @@
-# scrapy-splash
-## requie: 
-installed python 3.7.3, docker, scrapy, splash
+# scrapy-splash  
 
-## config input in infor.json :
-    "ChanelUrl" : url of chanel for crawl data 
-    "VideoUrl" : url of video for crawl data. if ChanelUrl is setted VideoUrl not pass.
-    "MaxVideo" : if ChanelUrl is not NULL. this is maximum video will crawl data from chanel.
-    "MaxComment": if value = -1 get all comment. else get 'value' comment per video 
-    "Replies": if value = -1 get reply else dont get reply
-    "LikeComment": value = -1 get Like comment else dont get like comment 
-    "DisLikeComment": if value = -1 get DisLikeComment else dont get
-    "LikeReplies" : if value = -1 get LikeReplies else dont get
-    "DisLikeRplies": if value = -1 get DisLikeRplies else dont get
+A web scraping project using **Scrapy** and **Splash** to extract data from video channels and comments.  
+
+## 📌 Requirements  
+
+Ensure you have the following installed before running the project:  
+
+- **Python** 3.7.3  
+- **Docker**  
+- **Scrapy**  
+- **Splash**  
+
+## ⚙️ Configuration  
+
+Modify the `info.json` file to customize your scraping settings:  
+
+```json
+{
+    "ChannelUrl": "URL of the channel to crawl data from.",
+    "VideoUrl": "URL of the video to crawl data from. If `ChannelUrl` is set, `VideoUrl` is not required.",
+    "MaxVideo": "If `ChannelUrl` is not NULL, this specifies the maximum number of videos to crawl.",
+    "MaxComment": "If set to `-1`, retrieves all comments; otherwise, limits the number of comments per video.",
+    "Replies": "If set to `-1`, includes replies; otherwise, excludes replies.",
+    "LikeComment": "If set to `-1`, retrieves like counts for comments; otherwise, excludes them.",
+    "DisLikeComment": "If set to `-1`, retrieves dislike counts for comments; otherwise, excludes them.",
+    "LikeReplies": "If set to `-1`, retrieves like counts for replies; otherwise, excludes them.",
+    "DisLikeReplies": "If set to `-1`, retrieves dislike counts for replies; otherwise, excludes them."
+}
+```
 
 ## note
 if ChanelUrl is NULL then crawl from VideoUrl.
